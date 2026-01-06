@@ -11,6 +11,11 @@ Notes on setting up and using https://agent-flywheel.com/
 
 - https://github.com/thewoolleyman/agentic_coding_flywheel_setup
 - PR: https://github.com/Dicklesworthstone/agentic_coding_flywheel_setup/pull/30
+- Run from fork with:
+
+```shell
+curl -fsSL "https://raw.githubusercontent.com/thewoolleyman/agentic_coding_flywheel_setup/fix/claude-code-auth-check/install.sh" | bash -s -- --yes
+```
 
 ## Logging into VPN
 
