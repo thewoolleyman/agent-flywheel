@@ -28,7 +28,7 @@ The `--force-reinstall` flag only resets the phase completion tracking (backs up
 Run from the canonical repo (not fork):
 
 ```shell
-curl --proto '=https' --proto-redir '=https' -fsSL 'https://raw.githubusercontent.com/Dicklesworthstone/agentic_coding_flywheel_setup/main/install.sh' | bash -s -- --mode vibe --yes
+curl --proto '=https' --proto-redir '=https' -fsSL 'https://raw.githubusercontent.com/Dicklesworthstone/agentic_coding_flywheel_setup/main/install.sh' | bash -s -- --mode vibe --yes --force-reinstall
 ```
 
 Options:
@@ -76,7 +76,156 @@ Skip options: `--no-apt`, `--no-agents`, `--no-cloud`, `--no-shell`, `--no-runti
 
 ## General usage
 
+### Coding Agents
 
+Three agents are installed with power-mode aliases:
+
+| Agent | Alias | Expands To |
+|-------|-------|------------|
+| Claude Code | `cc` | `NODE_OPTIONS="--max-old-space-size=32768" ENABLE_BACKGROUND_TASKS=1 claude --dangerously-skip-permissions` |
+| Codex CLI | `cod` | `codex --dangerously-bypass-approvals-and-sandbox` |
+| Gemini CLI | `gmi` | `gemini --yolo` |
+
+**Login:**
+```shell
+claude auth login              # Anthropic - follow browser link
+codex login --device-auth      # OpenAI - enable in ChatGPT Settings → Security first
+gemini                         # Google - follow prompts
+```
+
+**Test:**
+```shell
+cc "Hello! Confirm you're working."
+cod "Hello! Confirm you're working."
+gmi "Hello! Confirm you're working."
+```
+
+### CAAM (Coding Agent Account Manager)
+
+Backup and switch agent credentials. Useful for managing rate limits:
+
+```shell
+caam backup claude my-main-account    # Backup current credentials
+caam backup codex my-main-account
+caam backup gemini my-main-account
+caam ls                               # List all backups
+caam status                           # See current accounts
+caam activate claude other-account    # Switch to different account
+```
+
+### NTM (Named Tmux Manager)
+
+Orchestrate multiple agents in organized tmux sessions:
+
+```shell
+ntm tutorial                          # Interactive tutorial
+ntm deps -v                           # Check dependencies
+ntm spawn myproject --cc=2 --cod=1 --gmi=1  # Create session with agents
+ntm list                              # List sessions
+ntm attach myproject                  # Attach to session
+ntm send myproject "Analyze this codebase"  # Send to ALL agents
+ntm send myproject --cc "Focus on API"      # Send to specific agent type
+ntm palette                           # Browse pre-built prompts
+ntm palette myproject --send          # Select prompt and send to session
+```
+
+**Inside NTM session:**
+
+| Keys | Action |
+|--------------------------|---------------------|
+| `Ctrl+a` then `n` | Next window |
+| `Ctrl+a` then `p` | Previous window |
+| `Ctrl+a` then `h/j/k/l` | Move between panes |
+| `Ctrl+a` then `z` | Zoom current pane |
+
+### UBS (Ultimate Bug Scanner)
+
+Run comprehensive static analysis to catch issues before committing:
+
+```shell
+ubs .                                 # Scan current directory
+```
+
+### CASS (Coding Agent Session Search)
+
+Search across all agent session history:
+
+```shell
+cass                                  # Opens TUI for searching
+```
+
+### CM (CASS Memory)
+
+Build persistent procedural memory that gives agents context from past work:
+
+```shell
+cm context "Building an API"          # Get relevant memories for context
+cm context "auth system" --json       # JSON output for piping to agents
+cm reflect                            # Update procedural memory from sessions
+```
+
+### bv/bd (Beads Viewer)
+
+Track tasks and issues with a kanban-style interface:
+
+```shell
+bv                                    # Opens TUI (kanban view)
+bd init                               # Initialize beads in current project
+bd ready                              # See tasks ready to work on
+bd close <task-id>                    # Close a task
+```
+
+**Recommended setup for new projects:**
+```shell
+git branch beads-sync main            # Create dedicated sync branch
+git push -u origin beads-sync
+bd config set sync.branch beads-sync  # Avoid worktree conflicts
+```
+
+### am (Agent Mail)
+
+Multi-agent coordination server that lets agents share context with each other:
+
+```shell
+am                                    # Start the agent mail server
+```
+
+### SLB (Simultaneous Launch Button)
+
+Optional safety guardrails with two-person rule for dangerous commands:
+
+```shell
+slb                                   # Review dangerous operations
+```
+
+### Typical Workflow
+
+```shell
+# 1. Plan work
+bv                                    # Check tasks
+bd ready                              # See what's ready
+
+# 2. Start agents
+ntm spawn myproject --cc=2 --cod=1
+
+# 3. Set context from memory
+cm context "Implementing auth" --json
+
+# 4. Send initial prompt
+ntm send myproject "Implement user auth. Context: [paste cm output]"
+
+# 5. Monitor
+ntm attach myproject
+
+# 6. Scan before commit
+ubs .
+
+# 7. Update memory
+cm reflect
+
+# 8. Close task
+bd close <task-id>
+```
 
 ## VPS provider info
 
