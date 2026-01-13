@@ -84,28 +84,33 @@ The `--memory` flag takes a number in GiB (e.g., `32` for 32GB).
 
 ### Running Agent Flywheel Setup
 
-The installer requires root access for the Ubuntu auto-upgrade phase. After installation, tools are configured for the `ubuntu` user.
+Lima VMs use your macOS username by default, but ACFS expects an `ubuntu` user. The Ubuntu auto-upgrade also doesn't work in Lima VMs, so we use `--skip-ubuntu-upgrade`.
 
-**1. Access the VM as root:**
+**1. Create the ubuntu user:**
 ```bash
-limactl shell ubuntu24 sudo -i
+limactl shell ubuntu24 sudo bash -c '
+useradd -m -s /bin/bash ubuntu
+echo "ubuntu ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/ubuntu
+chown -R ubuntu:ubuntu /home/ubuntu
+'
 ```
 
-**2. Run the installer as root:**
+**2. Run the installer as the ubuntu user:**
 ```bash
-curl -fsSL "https://raw.githubusercontent.com/Dicklesworthstone/agentic_coding_flywheel_setup/main/install.sh" | bash -s -- --mode vibe --yes
+limactl shell ubuntu24 sudo -u ubuntu bash -c 'curl -fsSL "https://raw.githubusercontent.com/Dicklesworthstone/agentic_coding_flywheel_setup/main/install.sh" | bash -s -- --mode vibe --yes --skip-ubuntu-upgrade'
 ```
 
-**3. After installation, exit root and use the ubuntu user:**
+Installation takes approximately 13 minutes.
+
+**3. Access as ubuntu user after installation:**
 ```bash
-exit  # Exit root shell
-limactl shell ubuntu24  # Connect as regular user
+limactl shell ubuntu24 sudo -u ubuntu -i
 ```
 
-**Alternative: Skip Ubuntu upgrade (run as regular user):**
+**4. Verify installation:**
 ```bash
-limactl shell ubuntu24
-curl -fsSL "https://raw.githubusercontent.com/Dicklesworthstone/agentic_coding_flywheel_setup/main/install.sh" | bash -s -- --mode vibe --yes --skip-ubuntu-upgrade
+acfs doctor
+onboard
 ```
 
 ## UTM Virtual Machine
