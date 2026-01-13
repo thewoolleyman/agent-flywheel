@@ -95,20 +95,32 @@ chown -R ubuntu:ubuntu /home/ubuntu
 '
 ```
 
-**2. Run the installer as the ubuntu user:**
+**2. Configure Lima to use ubuntu as default user:**
 ```bash
-limactl shell ubuntu24 sudo -u ubuntu bash -c 'curl -fsSL "https://raw.githubusercontent.com/Dicklesworthstone/agentic_coding_flywheel_setup/main/install.sh" | bash -s -- --mode vibe --yes --skip-ubuntu-upgrade'
+limactl stop ubuntu24
+```
+
+Edit `~/.lima/ubuntu24/lima.yaml` and add after the first line:
+```yaml
+user:
+  name: ubuntu
+```
+
+Then restart:
+```bash
+limactl start ubuntu24
+```
+
+**3. Run the installer:**
+```bash
+limactl shell ubuntu24 -- bash -c 'curl -fsSL "https://raw.githubusercontent.com/Dicklesworthstone/agentic_coding_flywheel_setup/main/install.sh" | bash -s -- --mode vibe --yes --skip-ubuntu-upgrade'
 ```
 
 Installation takes approximately 13 minutes.
 
-**3. Access as ubuntu user after installation:**
+**4. Access the VM and verify:**
 ```bash
-limactl shell ubuntu24 sudo -u ubuntu -i
-```
-
-**4. Verify installation:**
-```bash
+limactl shell ubuntu24
 acfs doctor
 onboard
 ```
