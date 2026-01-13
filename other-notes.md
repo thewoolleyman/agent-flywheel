@@ -1,4 +1,4 @@
-# Chad's notes
+# Other notes
 
 General notes on things from https://agent-flywheel.com/learn that I didn't already know or
 don't remember to use regularly.
