@@ -1,6 +1,46 @@
 # Agent Flywheel Workflow Examples
 
-This document provides comprehensive workflow examples showing how to use agent-flywheel tools together effectively, including project setup, daily workflows, team collaboration, and advanced usage patterns.
+This document provides comprehensive workflow examples showing how to use agent-flywheel tools together effectively, including project setup, AI-powered task selection, team collaboration, and advanced usage patterns.
+
+## The Flywheel Loop: Plan Step Explained
+
+The "Plan your work" step uses two complementary commands:
+
+### `bv --robot-triage` - Strategic Analysis
+Provides AI-powered analysis with sophisticated scoring:
+- **PageRank centrality** - Dependency graph importance (which tasks unlock the most work)
+- **Betweenness centrality** - Impact on workflow flow
+- **Staleness analysis** - How long tasks have been waiting
+- **Risk assessment** - Cross-repo dependencies, activity churn, complexity
+- **Time-to-impact** - How quickly completing this task affects other work
+- **Priority weighting** - P0 bugs get immediate prioritization
+
+Returns JSON with reasoning like:
+```json
+{
+  "id": "agent-flywheel-xyz",
+  "title": "Implement login form",
+  "score": 0.85,
+  "reasons": [
+    "📊 High centrality in dependency graph",
+    "⚡ Unblocks 3 other tasks",
+    "🕒 Task has been waiting for optimal timing"
+  ]
+}
+```
+
+### `bd ready` - Actionable Tasks
+Shows tasks that are actually ready to work on (no blockers, dependencies satisfied):
+```shell
+bd ready                              # All ready tasks
+bd ready --assignee=myname           # Ready tasks assigned to you
+bd ready --unassigned                # Available for claiming
+```
+
+### Combined Workflow
+1. **`bv --robot-triage`** - Understand WHY tasks are prioritized
+2. **`bd ready`** - See WHICH tasks you can actually start
+3. **Choose intelligently** based on AI insights and current availability
 
 ## Initial Project Setup
 
@@ -53,46 +93,56 @@ bv                                    # Open kanban view
 
 ## Basic Daily Workflow
 
-Standard workflow for daily development with agent-flywheel:
+The official agent-flywheel workflow (The Flywheel Loop):
 
 ```shell
-# 1. Sync with team (get latest beads issues)
-bd sync
+# 1. Plan your work
+bv --robot-triage                     # AI analysis with reasoning
+bd ready                              # See what's ready to work on
 
-# 2. Plan work
-bv                                    # Visual kanban view
-bd ready                              # See tasks ready to work on
-
-# 3. Claim and start a task
-bd update <task-id> --status in_progress --assignee myname
-bd sync -m "Claim task X"             # Notify team immediately
-
-# 4. Start agents
+# 2. Start your agents
 ntm spawn myproject --cc=2 --cod=1
 
-# 5. Set context from memory
-cm context "implementing feature X" --json
+# 3. Set context
+cm context "Implementing user authentication" --json
 
-# 6. Send initial prompt with context
-ntm send myproject "Implement feature X. Context: [paste cm output]"
+# 4. Send initial prompt
+ntm send myproject "Let's implement user authentication.
+Here's the context: [paste cm output]"
 
-# 7. Monitor and iterate
-ntm attach myproject
+# 5. Monitor and guide
+ntm attach myproject                  # Watch progress
 
-# 8. Quality check before commit
-ubs .                                 # Scan for bugs
+# 6. Scan before committing
+ubs .                                 # Check for bugs
 
-# 9. Commit code changes
-git add .
-git commit -m "Implement feature X"
-git push origin main
+# 7. Update memory
+cm reflect                            # Distill learnings
 
-# 10. Close task and sync with team
+# 8. Close the task
 bd close <task-id>
-bd sync -m "Complete feature X task"
+```
 
-# 11. Update memory for future context
-cm reflect
+### Team Coordination Enhancement
+
+For team workflows, add sync steps:
+
+```shell
+# 0. Sync with team first
+bd sync
+
+# 1. Plan your work
+bv --robot-triage                     # AI analysis shows optimal work
+bd ready                              # See actionable tasks
+
+# 2. Claim chosen task (use claim_command from robot output if available)
+bd update <task-id> --status=in_progress
+bd sync -m "Claim task from AI triage"
+
+# 3-8. [Follow standard flywheel loop steps above]
+
+# 9. Sync completion with team
+bd sync -m "Complete task"
 ```
 
 ## Solo Developer Workflow
@@ -112,26 +162,33 @@ bd create "Implement password reset flow" -t task -p 3 --parent="agent-flywheel-
 # 3. Sync beads changes to team
 bd sync -m "Add user authentication epic and tasks"
 
-# 4. Check what's ready to work on
-bd ready
+# 4. Run the Flywheel Loop for first task:
 
-# 5. Start working on first task
-bd update agent-flywheel-xyz.1 --status in_progress
+# Plan your work
+bv --robot-triage                     # AI analysis prioritizes login form task
+bd ready                              # See ready tasks including new auth tasks
 
-# 6. Plan work visually
-bv                                    # Check tasks in kanban view
-
-# 7. Start agents for the project
+# Start your agents
 ntm spawn auth-project --cc=2 --cod=1
 
-# 8. Set context from memory
-cm context "user authentication React" --json
+# Set context
+cm context "user authentication React login forms" --json
 
-# 9. Send initial prompt with context
-ntm send auth-project "Implement login form component. Context: [paste cm output]"
+# Send initial prompt
+ntm send auth-project "Let's implement the login form component.
+Here's the context: [paste cm output]"
 
-# 10. Monitor agent work
+# Monitor and guide
 ntm attach auth-project
+
+# Scan before committing
+ubs .
+
+# Update memory
+cm reflect
+
+# Close the task
+bd close agent-flywheel-xyz.1
 ```
 
 ### During Development
@@ -182,23 +239,29 @@ bd sync -m "Complete login form component task"
 # Morning routine - sync with team's beads changes
 bd sync
 
-# Check what your teammates are working on
-bd list --assignee="teammate-name"
+# Get AI analysis of current project state
+bv --robot-triage                     # See what AI recommends for today
+
+# Check team workload and blockers
+bd list --status=in_progress          # See what teammates are working on
+bd list --status=blocked              # Check for blockers to clear
 bv                                    # Visual kanban view
 
-# Check for conflicts or blockers
-bd list --status=blocked
+# Let AI suggest optimal task distribution
+bv --robot-triage-by-track           # For multi-agent team coordination
 ```
 
 ### Working with Shared Issues
 
 ```shell
-# Claim an available task
-bd ready                              # See unassigned tasks
-bd update agent-flywheel-abc.5 --assignee="myname" --status=in_progress
+# Get AI recommendation from available work
+bv --robot-triage                     # Full analysis shows what's optimal to work on
+# OR filter by team member if needed
+bv --robot-triage | jq '.triage.recommendations[] | select(.reasons[] | contains("unclaimed"))'
 
-# Sync your claim with the team immediately
-bd sync -m "Claim database migration task"
+# Claim the recommended task (use command provided by robot output)
+bd update agent-flywheel-abc.5 --status=in_progress
+bd sync -m "Claim AI-recommended database migration task"
 
 # Work on the task...
 # [development work happens here]
@@ -349,9 +412,10 @@ git checkout -b hotfix/api-timeout
 bd create "Fix API timeout in user search" -t bug -p 0 \
   --description="Users experiencing 30s timeouts on search. Production issue affecting 15% of requests."
 
-# 3. Update status and sync immediately
-bd update agent-flywheel-jkl --status in_progress --assignee="myname"
-bd sync -m "Emergency: API timeout hotfix started"
+# 3. AI triage will immediately prioritize P0 bugs - claim the urgent task
+bv --robot-next                       # P0 bugs get highest priority in AI scoring
+bd update agent-flywheel-jkl --status=in_progress
+bd sync -m "Emergency: Claim AI-prioritized API timeout hotfix"
 
 # 4. Quick fix development
 ntm spawn hotfix --cc=1               # Single agent for focused work
@@ -454,13 +518,16 @@ cod "Show me the current directory" # Test Codex
 
 ## Best Practices Summary
 
-### Daily Routine
+### Daily Routine - The Flywheel Loop
 1. **Start day**: `bd sync` (get team updates)
-2. **Check work**: `bd ready` and `bv` (see available tasks)
-3. **Claim task**: `bd update task-id --status in_progress --assignee myname`
-4. **Sync claim**: `bd sync -m "Claim task X"` (notify team immediately)
-5. **Work with agents**: Use `ntm` and `cm` for context
-6. **End day**: Complete tasks and `bd sync` (share progress)
+2. **Plan work**: `bv --robot-triage` (AI analysis) + `bd ready` (actionable tasks)
+3. **Start agents**: `ntm spawn project --cc=2 --cod=1`
+4. **Set context**: `cm context "topic" --json` (use persistent memory)
+5. **Send prompt**: Include CM context in your initial prompt
+6. **Monitor**: `ntm attach session` (guide agent progress)
+7. **Scan**: `ubs .` (quality check before commit)
+8. **Reflect**: `cm reflect` (build persistent knowledge)
+9. **Close**: `bd close task-id` and `bd sync` (complete cycle)
 
 ### Team Coordination
 - **Sync frequently**: After claiming tasks, completing work, or major updates
