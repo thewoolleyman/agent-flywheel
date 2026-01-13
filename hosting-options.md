@@ -135,80 +135,108 @@ UTM is designed to give users the flexibility of QEMU without the steep learning
 
 ### Installation
 
-**Download UTM:**
+**Option 1: Homebrew (recommended):**
+```bash
+brew install --cask utm
+```
+
+**Option 2: Direct download:**
 - [UTM for Mac](https://mac.getutm.app/) (Free and open source)
-- Also available on Mac App Store (identical to free version)
+- Also available on Mac App Store
 
 ### Setup
 
 **1. Download Ubuntu ARM64 ISO:**
-- [Ubuntu 24.04 ARM64](https://ubuntu.com/download/server/arm)
+```bash
+# Direct download link:
+wget -O ~/Downloads/ubuntu-24.04.3-live-server-arm64.iso \
+  "https://cdimage.ubuntu.com/releases/24.04/release/ubuntu-24.04.3-live-server-arm64.iso"
+```
+Or download from: [Ubuntu 24.04 ARM64](https://ubuntu.com/download/server/arm)
 
 **2. Create New VM:**
-1. Open UTM and click "+" to open VM creation wizard
-2. Select "Virtualize"
-3. Select "Linux"
-4. Choose hardware configuration:
-   - **Memory**: 64GB (65536 MB) for agent-flywheel
-   - **CPU Cores**: 8+ cores recommended
-   - **Storage**: 200GB+ recommended
 
-**3. Operating System Setup:**
-1. Click "Browse" and select the Ubuntu Server ISO
-2. Complete the VM creation wizard
-3. Start the VM and follow Ubuntu installation
+1. Open UTM and click **"+"** to create a new VM
+2. Select **"Virtualize"** (not Emulate - uses Apple Silicon natively)
+3. Select **"Linux"**
+4. On the Linux configuration screen:
+   - Leave **"Use Apple Virtualization"** unchecked (QEMU is recommended)
+   - Select **"Boot from ISO image"**
+   - Click **"Browse..."** and select the Ubuntu ISO from Downloads
+   - Click **"Continue"**
+5. On the Hardware screen:
+   - **Memory**: 32768 MiB (32GB) - drag slider or type value
+   - **CPU Cores**: 8
+   - **Enable display output**: checked
+   - **OpenGL acceleration**: leave unchecked (driver issues)
+   - Click **"Continue"**
+6. On the Storage screen:
+   - Set disk size to **100 GB** or more
+   - Click **"Continue"**
+7. On the Shared Directory screen:
+   - Optionally configure a shared folder (can skip)
+   - Click **"Continue"**
+8. On the Summary screen:
+   - Give the VM a name (e.g., "Ubuntu-ACFS")
+   - Click **"Save"**
 
-**4. Install Desktop Environment (Optional):**
-After Ubuntu Server installation:
-```bash
-sudo apt update
-sudo apt install ubuntu-desktop
-sudo reboot
-```
+**3. Install Ubuntu:**
+
+1. Select your new VM and click the **Play** button to start
+2. Follow the Ubuntu Server installer:
+   - Select language and keyboard
+   - Choose "Ubuntu Server" (not minimized)
+   - Configure network (DHCP is fine)
+   - Skip proxy and mirror configuration
+   - Use entire disk for storage
+   - Create user **"ubuntu"** (to match ACFS expectations)
+   - Enable OpenSSH server when prompted
+   - Skip optional snaps
+3. Complete installation and reboot
+4. When prompted, press Enter to remove the installation medium
 
 
 ### Post-Installation Configuration
 
-**1. Install UTM Guest Tools (Recommended):**
+**1. Get VM IP address** (from UTM console):
+```bash
+ip addr show enp0s1 | grep inet
+```
+
+**2. SSH from macOS host:**
+```bash
+ssh ubuntu@<vm-ip-address>
+```
+
+**3. Install guest tools (optional, for clipboard sharing):**
 ```bash
 sudo apt update
-sudo apt install spice-vdagent spice-webdavd
-```
-
-**2. Configure SSH Access:**
-```bash
-sudo apt install openssh-server
-sudo systemctl enable ssh
-sudo systemctl start ssh
-```
-
-**3. Get VM IP address:**
-```bash
-ip addr show
-```
-
-**4. SSH from macOS host:**
-```bash
-ssh username@vm-ip-address
+sudo apt install -y spice-vdagent spice-webdavd
 ```
 
 ### Running Agent Flywheel Setup
 
-Once your UTM VM is running Ubuntu:
+Once your UTM VM is running and you can SSH in:
 
-1. SSH into the VM or use the UTM console
-2. Switch to root and run the installer:
-   ```bash
-   sudo -i
-   curl -fsSL "https://raw.githubusercontent.com/Dicklesworthstone/agentic_coding_flywheel_setup/main/install.sh" | bash -s -- --mode vibe --yes
-   ```
-3. After installation, exit root and reconnect as the `ubuntu` user
+```bash
+# SSH into the VM
+ssh ubuntu@<vm-ip-address>
+
+# Run the installer (as ubuntu user)
+curl -fsSL "https://raw.githubusercontent.com/Dicklesworthstone/agentic_coding_flywheel_setup/main/install.sh" | bash -s -- --mode vibe --yes
+```
+
+Installation takes approximately 15-25 minutes. After completion:
+```bash
+acfs doctor
+onboard
+```
 
 ### Performance Tips
 
-- Enable "Use Apple Virtualization" in VM settings
-- Allocate adequate RAM (64GB for full agent-flywheel experience)
-- Use virtio drivers for best performance
+- Leave "Use Apple Virtualization" unchecked (QEMU is more stable for Linux)
+- Allocate 32GB+ RAM for comfortable ACFS usage
+- UTM uses virtio drivers by default for best performance
 
 ## Comparison: Lima vs UTM
 
