@@ -159,41 +159,57 @@ Or download from: [Ubuntu 24.04 ARM64](https://ubuntu.com/download/server/arm)
 1. Open UTM and click **"+"** to create a new VM
 2. Select **"Virtualize"** (not Emulate - uses Apple Silicon natively)
 3. Select **"Linux"**
-4. On the Linux configuration screen:
-   - Leave **"Use Apple Virtualization"** unchecked (QEMU is recommended)
-   - Select **"Boot from ISO image"**
-   - Click **"Browse..."** and select the Ubuntu ISO from Downloads
-   - Click **"Continue"**
-5. On the Hardware screen:
+4. On the Hardware screen:
    - **Memory**: 32768 MiB (32GB) - drag slider or type value
    - **CPU Cores**: 8
    - **Enable display output**: checked
    - **OpenGL acceleration**: leave unchecked (driver issues)
    - Click **"Continue"**
+5. On the Linux configuration screen:
+   - Leave **"Use Apple Virtualization"** unchecked (QEMU is recommended)
+   - Select **"Boot from ISO image"**
+   - Click **"Browse..."** and select the Ubuntu ISO from Downloads
+   - Click **"Continue"**
 6. On the Storage screen:
    - Set disk size to **100 GB** or more
    - Click **"Continue"**
 7. On the Shared Directory screen:
-   - Optionally configure a shared folder (can skip)
+   - Optionally share your home folder for file access (or skip)
    - Click **"Continue"**
 8. On the Summary screen:
    - Give the VM a name (e.g., "Ubuntu-ACFS")
+   - Leave **"Open VM Settings"** unchecked
+   - Click **"Save"**
+9. **Configure Network** (important):
+   - Right-click the VM and select **"Edit"**
+   - Go to **Network** settings
+   - Change from "Shared Network" to **"Bridged"**
+   - Select your network interface (e.g., `en0` for WiFi)
    - Click **"Save"**
 
 **3. Install Ubuntu:**
 
 1. Select your new VM and click the **Play** button to start
-2. Follow the Ubuntu Server installer:
-   - Select language and keyboard
-   - Choose "Ubuntu Server" (not minimized)
-   - Configure network (DHCP is fine)
-   - Skip proxy and mirror configuration
-   - Use entire disk for storage
-   - Create user **"ubuntu"** (to match ACFS expectations)
-   - Enable OpenSSH server when prompted
-   - Skip optional snaps
-3. Complete installation and reboot
-4. When prompted, press Enter to remove the installation medium
+2. Select **"Try or Install Ubuntu Server"** and wait for installer to load (may take a minute)
+3. Follow the Ubuntu Server installer:
+   - **Language**: Select English
+   - **Keyboard**: Select your layout (e.g., English US)
+   - **Install type**: Choose "Ubuntu Server" (not minimized)
+   - **Network**: Wait for DHCP to assign IP, then Done
+   - **Proxy**: Leave blank, select Done
+   - **Mirror**: Use default, select Done (requires network)
+   - **Storage**: Select "Use an entire disk", then Done, confirm destructive action
+   - **Profile setup**:
+     - Your name: `ubuntu`
+     - Server name: `agent-flywheel-host-utm`
+     - Username: **`ubuntu`** (important - matches ACFS expectations)
+     - Password: your choice
+   - **Ubuntu Pro**: Skip for now (paid subscription not needed)
+   - **SSH**: Enable "Install OpenSSH server"
+   - **Snaps**: Skip (select Done without selecting any)
+4. Wait for installation to complete
+5. Select **"Reboot Now"** when prompted
+6. Press Enter to remove installation medium when prompted
 
 
 ### Post-Installation Configuration
