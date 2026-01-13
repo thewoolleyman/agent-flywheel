@@ -7,6 +7,7 @@ Notes on setting up and using https://agent-flywheel.com/
 - [Other notes](other-notes.md)
 - [GitLab-specific setup](gitlab-setup.md)
 - [Docker setup for agents](docker-setup.md)
+- [Hosting options](hosting-options.md)
 
 ## Installation, Doctor, and Update
 
@@ -277,11 +278,6 @@ cm reflect
 bd close <task-id>
 ```
 
-
-## VPS provider info
-
-- https://contabo.com/en-us/vps/
-- https://new.contabo.com/servers/vps
 
 ## Fork of project
 
