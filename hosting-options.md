@@ -238,16 +238,32 @@ sudo apt install -y spice-vdagent spice-webdavd
 
 Once your UTM VM is running and you can SSH in:
 
+**1. Set up SSH key authentication (optional but recommended):**
+```bash
+# From your Mac, copy your public key to the VM
+ssh-copy-id ubuntu@<vm-ip-address>
+```
+
+**2. Configure passwordless sudo (required for installer):**
 ```bash
 # SSH into the VM
 ssh ubuntu@<vm-ip-address>
 
-# Run the installer (as ubuntu user)
-curl -fsSL "https://raw.githubusercontent.com/Dicklesworthstone/agentic_coding_flywheel_setup/main/install.sh" | bash -s -- --mode vibe --yes
+# Set up passwordless sudo
+echo "$USER ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/$USER
+sudo chmod 440 /etc/sudoers.d/$USER
 ```
 
-Installation takes approximately 15-25 minutes. After completion:
+**3. Run the ACFS installer:**
 ```bash
+curl -fsSL "https://raw.githubusercontent.com/Dicklesworthstone/agentic_coding_flywheel_setup/main/install.sh" | bash -s -- --mode vibe --yes --skip-ubuntu-upgrade
+```
+
+Note: We use `--skip-ubuntu-upgrade` because the Ubuntu auto-upgrade can fail in virtualized environments. Ubuntu 24.04 works fine with ACFS.
+
+Installation takes approximately 10 minutes. After completion:
+```bash
+source ~/.zshrc
 acfs doctor
 onboard
 ```
