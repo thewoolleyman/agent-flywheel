@@ -206,6 +206,8 @@ slb                                   # Review dangerous operations
 
 ### Typical Workflow
 
+First, clone the project under `/data/projects` with `gh repo clone` or `glab repo clone`
+
 ```shell
 # 1. Plan work
 bv                                    # Check tasks
