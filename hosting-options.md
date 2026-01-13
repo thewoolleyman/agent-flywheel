@@ -13,8 +13,7 @@ Recommended cloud VPS provider for agent-flywheel setup:
 
 **Recommended specs:**
 - 64GB RAM minimum
-- Ubuntu 24.04 LTS or 22.04 LTS
-- ~$40-56/month
+- Ubuntu 24.04 LTS
 
 ## Local Virtualization on macOS
 
@@ -30,18 +29,9 @@ Lima (LInux MAchine) provides the simplest way to run Linux VMs on macOS with se
 
 ### Installation
 
-**Using Homebrew (Recommended):**
 ```bash
 brew install lima
 ```
-
-**Using MacPorts:**
-```bash
-sudo port install lima
-```
-
-**Manual Installation:**
-Download from [Lima releases](https://github.com/lima-vm/lima/releases) and extract under `/usr/local`.
 
 ### Quick Setup
 
@@ -69,15 +59,6 @@ limactl shell ubuntu24
 
 Lima mounts your entire home directory inside the VM for seamless access. Write permissions are available under `/tmp/lima` by default.
 
-### Available Templates
-
-Lima supports multiple Linux distributions:
-- Ubuntu (LTS and latest)
-- Alpine
-- Debian
-- Fedora
-- Arch Linux
-- And more
 
 ### Resource Configuration
 
@@ -107,7 +88,7 @@ Once your Lima VM is running:
 
 ## UTM Virtual Machine
 
-UTM provides full virtualization on macOS with a user-friendly interface, supporting both Intel and Apple Silicon Macs.
+UTM provides full virtualization on macOS with a user-friendly interface for Apple Silicon Macs.
 
 ### What is UTM?
 
@@ -119,11 +100,10 @@ UTM is designed to give users the flexibility of QEMU without the steep learning
 - [UTM for Mac](https://mac.getutm.app/) (Free and open source)
 - Also available on Mac App Store (identical to free version)
 
-### Setup for Apple Silicon (M1/M2/M3) Macs
+### Setup
 
 **1. Download Ubuntu ARM64 ISO:**
 - [Ubuntu 24.04 ARM64](https://ubuntu.com/download/server/arm)
-- [Ubuntu 22.04 ARM64](https://ubuntu.com/download/server/arm)
 
 **2. Create New VM:**
 1. Open UTM and click "+" to open VM creation wizard
@@ -147,13 +127,6 @@ sudo apt install ubuntu-desktop
 sudo reboot
 ```
 
-### Setup for Intel Macs
-
-**1. Download Ubuntu x86_64 ISO:**
-- [Ubuntu 24.04 Desktop](https://ubuntu.com/download/desktop)
-- [Ubuntu 22.04 Desktop](https://ubuntu.com/download/desktop)
-
-**2. Follow similar VM creation steps** as Apple Silicon, but select x86_64 architecture.
 
 ### Post-Installation Configuration
 
@@ -192,15 +165,9 @@ Once your UTM VM is running Ubuntu:
 
 ### Performance Tips
 
-**For Apple Silicon Macs:**
 - Enable "Use Apple Virtualization" in VM settings
 - Allocate adequate RAM (64GB for full agent-flywheel experience)
 - Use virtio drivers for best performance
-
-**For Intel Macs:**
-- Enable hardware acceleration
-- Allocate sufficient CPU cores
-- Use SSD storage for VM disk
 
 ## Comparison: Lima vs UTM
 
@@ -233,10 +200,4 @@ Once your UTM VM is running Ubuntu:
 - Require more resources than local machine provides
 - Need production-like environment
 
-## Cost Considerations
-
-- **Lima/UTM**: Free software, uses local hardware resources
-- **Cloud VPS**: ~$40-56/month for recommended specs
-- **Total agent-flywheel cost**: Add ~$400-600/month for AI subscriptions (Claude Max, ChatGPT Pro, etc.)
-
-For full cost breakdown and setup requirements, see the main [agent-flywheel.com](https://agent-flywheel.com) documentation.
+For full setup requirements, see the main [agent-flywheel.com](https://agent-flywheel.com) documentation.
