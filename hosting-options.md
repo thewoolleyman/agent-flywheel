@@ -209,7 +209,11 @@ Or download from: [Ubuntu 24.04 ARM64](https://ubuntu.com/download/server/arm)
    - **Snaps**: Skip (select Done without selecting any)
 4. Wait for installation to complete
 5. Select **"Reboot Now"** when prompted
-6. Press Enter to remove installation medium when prompted
+6. **Remove the ISO** (important - otherwise VM will boot installer again):
+   - Stop the VM
+   - Right-click VM → Edit
+   - Find the USB drive with the ISO and **Delete** it
+   - Save and start the VM
 
 
 ### Post-Installation Configuration
