@@ -1,184 +1,539 @@
-# Running Agents in Custom Containers
+# Agent Docker Workflow: Per-Project Containers
 
-Run agents inside Docker containers with project-specific environments (databases, language runtimes, system dependencies). This gives agents access to a fully-configured development environment.
+Standardized agent-flywheel workflow using Docker containers for project-specific environments. Agents run via `docker exec` into dedicated project containers, providing isolated, reproducible environments with full access to project code, dependencies, and credentials.
 
-## Method 1: Docker Exec (Quick Tasks)
+## Overview
 
-For one-off tasks in an existing container:
+**The Method:** Each project gets its own Docker container with project-specific dependencies. Agents execute commands inside the container via `docker exec`, configured through per-project NTM settings.
 
-1. Start your project container:
-```shell
-docker run -d --name myproject-env \
-  -v /data/projects/myproject:/workspace \
-  -w /workspace \
-  myproject-image:latest \
-  tail -f /dev/null
-```
+**Benefits:**
+- **Isolation**: Each project has its own environment and dependencies
+- **Reproducibility**: Consistent environments across team members and machines
+- **Flexibility**: Project-specific language runtimes, databases, and tools
+- **Security**: Containerized execution with credential mounting
+- **NTM Integration**: Seamless multi-agent orchestration within containers
 
-2. Run an agent inside the container:
-```shell
-docker exec -it myproject-env claude --dangerously-skip-permissions
-```
+## Quick Start
 
-3. Or create a wrapper alias:
-```shell
-alias cc-docker='docker exec -it myproject-env claude --dangerously-skip-permissions'
-```
-
-## Method 2: SSH-Enabled Container with NTM
-
-For full NTM integration, create a container with SSH access and use NTM's `--ssh` flag.
-
-1. Create a `Dockerfile` with SSH and agent dependencies:
+1. **Create Project Dockerfile**
 ```dockerfile
 FROM ubuntu:24.04
 
-# Install SSH and base tools
+# Install base dependencies and agents
 RUN apt-get update && apt-get install -y \
-    openssh-server sudo curl git \
+    curl git build-essential && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install agents
+RUN curl -fsSL https://claude.ai/install.sh | sh
+RUN curl -fsSL https://bun.sh/install | bash && \
+    ~/.bun/bin/bun install -g @openai/codex @google/gemini-cli
+
+# Add project dependencies here
+# RUN apt-get install -y python3 nodejs ...
+
+WORKDIR /workspace
+CMD ["tail", "-f", "/dev/null"]
+```
+
+2. **Build and Start Container**
+```shell
+docker build -t myproject-env .
+docker run -d --name myproject-env \
+  -v "$(pwd):/workspace" \
+  -v ~/.claude:/root/.claude \
+  -v ~/.codex:/root/.codex \
+  -v ~/.config/gemini:/root/.config/gemini \
+  myproject-env
+```
+
+3. **Configure NTM for Container Usage**
+```shell
+mkdir -p .ntm
+cat > .ntm/config.toml << 'EOF'
+[agents]
+claude = "docker exec -i myproject-env claude --dangerously-skip-permissions"
+codex = "docker exec -i myproject-env codex --dangerously-bypass-approvals-and-sandbox"
+gemini = "docker exec -i myproject-env gemini --yolo"
+EOF
+```
+
+4. **Use Agents with NTM**
+```shell
+ntm spawn myproject --cc=2 --cod=1 --gmi=1
+```
+
+## Dockerfile Templates
+
+### Base Template (Minimal)
+```dockerfile
+FROM ubuntu:24.04
+
+# System dependencies
+RUN apt-get update && apt-get install -y \
+    curl git build-essential ca-certificates \
     && rm -rf /var/lib/apt/lists/*
-
-# Create agent user with sudo
-RUN useradd -m -s /bin/bash agent && \
-    echo "agent ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
-
-# Set up SSH
-RUN mkdir /var/run/sshd && \
-    mkdir -p /home/agent/.ssh && \
-    chown agent:agent /home/agent/.ssh
-
-# Install your project dependencies here
-# RUN apt-get install -y nodejs npm python3 ...
-# RUN pip install ...
-
-# Install agents (as agent user)
-USER agent
-WORKDIR /home/agent
 
 # Install Claude Code
 RUN curl -fsSL https://claude.ai/install.sh | sh
 
 # Install Bun (for Codex/Gemini)
 RUN curl -fsSL https://bun.sh/install | bash
-ENV PATH="/home/agent/.bun/bin:$PATH"
+ENV PATH="/root/.bun/bin:$PATH"
 
 # Install Codex and Gemini
-RUN ~/.bun/bin/bun install -g @openai/codex @google/gemini-cli
-
-USER root
-EXPOSE 22
-CMD ["/usr/sbin/sshd", "-D"]
-```
-
-2. Build and run the container:
-```shell
-docker build -t myproject-agent-env .
-
-docker run -d --name myproject-agents \
-  -p 2222:22 \
-  -v /data/projects/myproject:/home/agent/project \
-  -v /home/ubuntu/.claude:/home/agent/.claude \
-  -v /home/ubuntu/.codex:/home/agent/.codex \
-  -v /home/ubuntu/.config/gemini:/home/agent/.config/gemini \
-  myproject-agent-env
-```
-
-3. Add your SSH key to the container:
-```shell
-docker exec myproject-agents bash -c \
-  "cat >> /home/agent/.ssh/authorized_keys" < ~/.ssh/id_rsa.pub
-```
-
-4. Use NTM with the `--ssh` flag:
-```shell
-ntm spawn myproject --cc=2 --cod=1 --ssh=agent@localhost:2222
-```
-
-## Method 3: Custom NTM Agent Commands
-
-Override agent commands in NTM config to run inside containers.
-
-1. Edit NTM config:
-```shell
-ntm config edit
-```
-
-2. Modify the `[agents]` section to use docker exec:
-```toml
-[agents]
-claude = "docker exec -i myproject-env claude --dangerously-skip-permissions{{if .Model}} --model {{shellQuote .Model}}{{end}}"
-codex = "docker exec -i myproject-env codex --dangerously-bypass-approvals-and-sandbox{{if .Model}} -m {{shellQuote .Model}}{{end}}"
-gemini = "docker exec -i myproject-env gemini --yolo{{if .Model}} --model {{shellQuote .Model}}{{end}}"
-```
-
-3. Spawn agents normally (commands now run in container):
-```shell
-ntm spawn myproject --cc=2 --cod=1
-```
-
-## Method 4: Per-Project Container Config
-
-Use NTM project config to override agent commands per-project.
-
-1. In your project directory:
-```shell
-cd /data/projects/myproject
-ntm config project init
-```
-
-2. Edit `.ntm/config.toml`:
-```toml
-[agents]
-claude = "docker exec -i myproject-env claude --dangerously-skip-permissions"
-```
-
-3. Agents spawned in this directory use the container.
-
-## Mounting Credentials
-
-When running agents in containers, mount credential directories from the host:
-
-```shell
-docker run -d --name myproject-env \
-  -v /data/projects/myproject:/workspace \
-  -v /home/ubuntu/.claude:/root/.claude \
-  -v /home/ubuntu/.codex:/root/.codex \
-  -v /home/ubuntu/.config/gemini:/root/.config/gemini \
-  -w /workspace \
-  myproject-image:latest
-```
-
-## Container Best Practices
-
-1. **Keep containers running** - Use `tail -f /dev/null` or a process manager
-2. **Mount project directories** - Agents need access to your code
-3. **Share credentials** - Mount `.claude`, `.codex`, `.config/gemini` from host
-4. **Match user IDs** - Avoid permission issues by matching container user UID to host
-5. **Use named containers** - Easier to reference in commands and configs
-
-## Example: Python ML Project
-
-```dockerfile
-FROM python:3.11
-
-RUN pip install torch transformers pandas numpy jupyter
-
-# Install Claude
-RUN curl -fsSL https://claude.ai/install.sh | sh
+RUN bun install -g @openai/codex @google/gemini-cli
 
 WORKDIR /workspace
 CMD ["tail", "-f", "/dev/null"]
 ```
 
-```shell
-# Build and run
-docker build -t ml-env .
-docker run -d --name ml-env \
-  -v /data/projects/ml-project:/workspace \
-  -v /home/ubuntu/.claude:/root/.claude \
-  --gpus all \
-  ml-env
+### Python Project Template
+```dockerfile
+FROM ubuntu:24.04
 
-# Use with agent
-docker exec -it ml-env claude --dangerously-skip-permissions
+# System dependencies
+RUN apt-get update && apt-get install -y \
+    curl git build-essential ca-certificates \
+    python3 python3-pip python3-venv \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install agents
+RUN curl -fsSL https://claude.ai/install.sh | sh
+RUN curl -fsSL https://bun.sh/install | bash
+ENV PATH="/root/.bun/bin:$PATH"
+RUN bun install -g @openai/codex @google/gemini-cli
+
+# Python environment
+RUN python3 -m pip install --upgrade pip setuptools wheel
+
+# Add common Python tools
+RUN pip install pytest black flake8 mypy
+
+WORKDIR /workspace
+CMD ["tail", "-f", "/dev/null"]
 ```
+
+### Node.js Project Template
+```dockerfile
+FROM ubuntu:24.04
+
+# System dependencies
+RUN apt-get update && apt-get install -y \
+    curl git build-essential ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js
+RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
+    apt-get install -y nodejs
+
+# Install agents
+RUN curl -fsSL https://claude.ai/install.sh | sh
+RUN curl -fsSL https://bun.sh/install | bash
+ENV PATH="/root/.bun/bin:$PATH"
+RUN bun install -g @openai/codex @google/gemini-cli
+
+# Add common Node.js tools
+RUN npm install -g typescript eslint prettier
+
+WORKDIR /workspace
+CMD ["tail", "-f", "/dev/null"]
+```
+
+### Full Stack Template (Python + Node.js + Database)
+```dockerfile
+FROM ubuntu:24.04
+
+# System dependencies
+RUN apt-get update && apt-get install -y \
+    curl git build-essential ca-certificates \
+    python3 python3-pip python3-venv \
+    postgresql-client redis-tools \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js
+RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
+    apt-get install -y nodejs
+
+# Install agents
+RUN curl -fsSL https://claude.ai/install.sh | sh
+RUN curl -fsSL https://bun.sh/install | bash
+ENV PATH="/root/.bun/bin:$PATH"
+RUN bun install -g @openai/codex @google/gemini-cli
+
+# Python tools
+RUN pip install pytest black flake8 mypy django fastapi
+
+# Node.js tools
+RUN npm install -g typescript eslint prettier
+
+WORKDIR /workspace
+CMD ["tail", "-f", "/dev/null"]
+```
+
+## Container Lifecycle Management
+
+### Starting Project Containers
+
+**Option 1: Manual Container Management**
+```shell
+# Build image
+docker build -t myproject-env .
+
+# Start container
+docker run -d --name myproject-env \
+  -v "$(pwd):/workspace" \
+  -v ~/.claude:/root/.claude \
+  -v ~/.codex:/root/.codex \
+  -v ~/.config/gemini:/root/.config/gemini \
+  myproject-env
+
+# Check status
+docker ps | grep myproject-env
+```
+
+**Option 2: Docker Compose (Recommended)**
+```yaml
+# docker-compose.yml
+version: '3.8'
+services:
+  agents:
+    build: .
+    container_name: myproject-env
+    volumes:
+      - .:/workspace
+      - ~/.claude:/root/.claude
+      - ~/.codex:/root/.codex
+      - ~/.config/gemini:/root/.config/gemini
+    working_dir: /workspace
+    command: tail -f /dev/null
+```
+
+```shell
+# Start with compose
+docker-compose up -d
+
+# Stop
+docker-compose down
+```
+
+### Container Management Commands
+
+```shell
+# Check if container is running
+docker ps | grep myproject-env
+
+# Start stopped container
+docker start myproject-env
+
+# Stop running container
+docker stop myproject-env
+
+# Remove container (will need to recreate)
+docker rm myproject-env
+
+# View container logs
+docker logs myproject-env
+
+# Access container shell for debugging
+docker exec -it myproject-env bash
+
+# Rebuild after Dockerfile changes
+docker-compose down
+docker-compose build --no-cache
+docker-compose up -d
+```
+
+## NTM Configuration
+
+### Project-Specific Configuration
+
+Create `.ntm/config.toml` in your project root:
+
+```toml
+[agents]
+# Standard agent commands with docker exec
+claude = "docker exec -i myproject-env claude --dangerously-skip-permissions"
+codex = "docker exec -i myproject-env codex --dangerously-bypass-approvals-and-sandbox"
+gemini = "docker exec -i myproject-env gemini --yolo"
+
+# Optional: Custom agent configurations
+[agents.aliases]
+cc = "docker exec -i myproject-env claude --dangerously-skip-permissions"
+cod = "docker exec -i myproject-env codex --dangerously-bypass-approvals-and-sandbox"
+gmi = "docker exec -i myproject-env gemini --yolo"
+
+# Optional: Model-specific overrides
+[agents.models]
+claude-opus = "docker exec -i myproject-env claude --dangerously-skip-permissions --model claude-3-opus-20240229"
+codex-latest = "docker exec -i myproject-env codex --dangerously-bypass-approvals-and-sandbox -m gpt-4"
+```
+
+### Dynamic Container Names
+
+For projects with multiple environments:
+
+```toml
+[agents]
+claude = "docker exec -i ${CONTAINER_NAME:-myproject-env} claude --dangerously-skip-permissions"
+codex = "docker exec -i ${CONTAINER_NAME:-myproject-env} codex --dangerously-bypass-approvals-and-sandbox"
+gemini = "docker exec -i ${CONTAINER_NAME:-myproject-env} gemini --yolo"
+```
+
+Usage:
+```shell
+# Use default container
+ntm spawn myproject --cc=2
+
+# Use custom container
+CONTAINER_NAME=myproject-dev ntm spawn myproject-dev --cc=2
+```
+
+## Credential Mounting
+
+### Standard Credential Paths
+
+Mount agent credentials from host to container:
+
+```shell
+docker run -d --name myproject-env \
+  -v "$(pwd):/workspace" \
+  -v ~/.claude:/root/.claude \
+  -v ~/.codex:/root/.codex \
+  -v ~/.config/gemini:/root/.config/gemini \
+  myproject-env
+```
+
+### User ID Mapping (Linux)
+
+Avoid permission issues by matching user IDs:
+
+```dockerfile
+FROM ubuntu:24.04
+
+# Create user with host UID
+ARG USER_ID=1000
+ARG GROUP_ID=1000
+RUN groupadd -g ${GROUP_ID} developer && \
+    useradd -m -u ${USER_ID} -g ${GROUP_ID} -s /bin/bash developer
+
+# Install agents as user
+USER developer
+WORKDIR /home/developer
+RUN curl -fsSL https://claude.ai/install.sh | sh
+# ... rest of agent installation
+
+WORKDIR /workspace
+CMD ["tail", "-f", "/dev/null"]
+```
+
+Build with host UID:
+```shell
+docker build --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) -t myproject-env .
+
+docker run -d --name myproject-env \
+  -v "$(pwd):/workspace" \
+  -v ~/.claude:/home/developer/.claude \
+  -v ~/.codex:/home/developer/.codex \
+  -v ~/.config/gemini:/home/developer/.config/gemini \
+  myproject-env
+```
+
+### macOS Volume Performance
+
+For better performance on macOS:
+
+```shell
+docker run -d --name myproject-env \
+  -v "$(pwd):/workspace:cached" \
+  -v ~/.claude:/root/.claude:delegated \
+  -v ~/.codex:/root/.codex:delegated \
+  -v ~/.config/gemini:/root/.config/gemini:delegated \
+  myproject-env
+```
+
+## Integration with bd init
+
+When initializing a new beads project with Docker support:
+
+1. **Initialize beads tracking**
+```shell
+bd init
+```
+
+2. **Create Docker environment** (optional step)
+```shell
+# Interactive setup script (future enhancement)
+bd docker init
+
+# Manual setup
+touch Dockerfile docker-compose.yml
+mkdir -p .ntm
+```
+
+3. **Add Docker files to git**
+```shell
+git add Dockerfile docker-compose.yml .ntm/config.toml
+git commit -m "Add Docker environment for agents"
+```
+
+## Project Workflow Example
+
+### Setting Up a New Python Project
+
+1. **Create project structure**
+```shell
+mkdir ml-project && cd ml-project
+bd init
+```
+
+2. **Create Dockerfile**
+```dockerfile
+FROM ubuntu:24.04
+
+RUN apt-get update && apt-get install -y \
+    curl git build-essential ca-certificates \
+    python3 python3-pip python3-venv \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install agents
+RUN curl -fsSL https://claude.ai/install.sh | sh
+RUN curl -fsSL https://bun.sh/install | bash
+ENV PATH="/root/.bun/bin:$PATH"
+RUN bun install -g @openai/codex @google/gemini-cli
+
+# Python ML tools
+RUN pip install pandas numpy scikit-learn jupyter
+
+WORKDIR /workspace
+CMD ["tail", "-f", "/dev/null"]
+```
+
+3. **Create docker-compose.yml**
+```yaml
+version: '3.8'
+services:
+  agents:
+    build: .
+    container_name: ml-project-env
+    volumes:
+      - .:/workspace
+      - ~/.claude:/root/.claude
+      - ~/.codex:/root/.codex
+      - ~/.config/gemini:/root/.config/gemini
+    working_dir: /workspace
+```
+
+4. **Configure NTM**
+```shell
+mkdir -p .ntm
+cat > .ntm/config.toml << 'EOF'
+[agents]
+claude = "docker exec -i ml-project-env claude --dangerously-skip-permissions"
+codex = "docker exec -i ml-project-env codex --dangerously-bypass-approvals-and-sandbox"
+gemini = "docker exec -i ml-project-env gemini --yolo"
+EOF
+```
+
+5. **Start environment and work**
+```shell
+docker-compose up -d
+ntm spawn ml-project --cc=2 --cod=1
+```
+
+## Troubleshooting
+
+### Container Not Running
+```shell
+# Check container status
+docker ps -a | grep myproject-env
+
+# Start if stopped
+docker start myproject-env
+
+# Recreate if failed
+docker rm myproject-env
+docker-compose up -d
+```
+
+### Permission Issues
+```shell
+# Check volume mounts
+docker exec myproject-env ls -la /workspace
+docker exec myproject-env ls -la /root/.claude
+
+# Fix with user ID mapping (see User ID Mapping section above)
+```
+
+### Agent Not Found in Container
+```shell
+# Check agent installation
+docker exec myproject-env which claude
+docker exec myproject-env claude --version
+
+# Reinstall if missing
+docker exec myproject-env curl -fsSL https://claude.ai/install.sh | sh
+```
+
+### Credential Issues
+```shell
+# Verify credentials are mounted
+docker exec myproject-env ls -la /root/.claude
+docker exec myproject-env ls -la /root/.codex
+docker exec myproject-env ls -la /root/.config/gemini
+
+# Test agent authentication
+docker exec myproject-env claude auth status
+```
+
+### Network Connectivity
+```shell
+# Test internet access
+docker exec myproject-env curl -I https://api.anthropic.com
+
+# Check DNS resolution
+docker exec myproject-env nslookup api.anthropic.com
+```
+
+### NTM Configuration Issues
+```shell
+# Verify config syntax
+ntm config validate
+
+# Test agent commands manually
+docker exec -i myproject-env claude --dangerously-skip-permissions
+```
+
+## Best Practices
+
+### Container Management
+- **Use Docker Compose** for easier container lifecycle management
+- **Name containers consistently** using project names
+- **Keep containers running** with `tail -f /dev/null` or similar
+- **Monitor container health** with `docker ps` and logs
+
+### Security
+- **Mount only necessary credentials** (`.claude`, `.codex`, `.config/gemini`)
+- **Use read-only mounts** where possible for system files
+- **Avoid exposing ports** unless required for the project
+- **Regular image updates** for security patches
+
+### Performance
+- **Use volume caching** on macOS (`:cached`, `:delegated`)
+- **Match user IDs** on Linux to avoid permission overhead
+- **Minimize image layers** with multi-command RUN statements
+- **Use .dockerignore** to exclude unnecessary files
+
+### Team Collaboration
+- **Commit Dockerfile and docker-compose.yml** to version control
+- **Include .ntm/config.toml** in git for consistent agent setup
+- **Document project-specific setup** in README.md
+- **Use consistent container naming** across team members
+
+### Maintenance
+- **Rebuild images** after dependency changes
+- **Clean up unused containers** periodically with `docker system prune`
+- **Version your images** for reproducible environments
+- **Test agent functionality** after container updates
+
+This per-project Docker workflow provides consistent, isolated environments for agent-flywheel development while maintaining seamless integration with NTM and the broader toolchain.
