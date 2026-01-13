@@ -215,6 +215,9 @@ Initialize beads issue tracking and configure git branches:
 
 ```shell
 bd init                               # Initialize beads in current project
+git add .                             # Stage the new beads files
+git commit -m "Initialize beads issue tracking"
+git push origin main                  # Push beads setup to main branch
 git branch beads-sync main            # Create dedicated sync branch
 git push -u origin beads-sync
 bd config set sync.branch beads-sync  # Avoid worktree conflicts
