@@ -37,13 +37,21 @@ brew install lima
 
 **Create Ubuntu VM:**
 ```bash
-limactl create --name=ubuntu24 template://ubuntu-lts
+limactl create --name=ubuntu24 template:ubuntu-lts
 ```
 
 **Start and access the VM:**
 ```bash
 limactl start ubuntu24
 limactl shell ubuntu24
+```
+
+**Stop and restart the VM:**
+```bash
+limactl stop ubuntu24      # Stop the VM (preserves state)
+limactl start ubuntu24     # Start it again
+limactl list               # Check VM status
+limactl delete ubuntu24    # Remove VM completely (destructive)
 ```
 
 ### Key Features
@@ -64,7 +72,7 @@ Lima mounts your entire home directory inside the VM for seamless access. Write 
 
 **Configure VM resources during creation:**
 ```bash
-limactl create --name=agent-flywheel --memory=64GiB --cpus=8 template://ubuntu-lts
+limactl create --name=agent-flywheel --memory=64GiB --cpus=8 template:ubuntu-lts
 ```
 
 **For agent-flywheel requirements:**
