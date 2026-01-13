@@ -102,7 +102,7 @@ The standard `bv` command provides visual task management:
 2. **Agent processes**: Runs commands, analyzes JSON output, considers dependencies and priorities
 3. **Agent recommends**: Provides human-readable recommendation with reasoning
 4. **Human decides**: Claims recommended task or asks for alternative analysis
-5. **Automation takes over**: Background process picks up in-progress tasks automatically
+5. **Use agents to implement**: `ntm attach` to work with agents on the claimed task
 
 ## The Official Flywheel Loop
 
@@ -110,54 +110,13 @@ Based on https://agent-flywheel.com/learn/flywheel-loop with agent-assisted plan
 
 ```shell
 # 1. Agent-assisted planning
-cc "Please run bv --robot-triage and bd ready, then recommend which task I should work on and explain your reasoning based on the AI analysis"
+cc "Please run bv --robot-triage and bd ready, then recommend which task I should work on and explain your reasoning"
 
 # 2. Claim recommended task (human decision)
 bd update <task-id> --status=in_progress
 
-# 3-9. Automated flywheel loop picks up in-progress tasks
-# Background process automatically handles:
-# - Starting agents (ntm spawn)
-# - Setting context (cm context)
-# - Sending prompts
-# - Monitoring progress (ntm attach)
-# - Quality scanning (ubs)
-# - Memory updates (cm reflect)
-# - Task completion (bd close)
-```
-
-### Manual Flywheel Loop (For Direct Control)
-
-When you want direct control over the process:
-
-```shell
-# 1. Plan your work (agent-assisted)
-cc "Analyze current work priorities and recommend next task"
-
-# 2. Claim chosen task
-bd update <task-id> --status=in_progress
-
-# 3. Start your agents
-ntm spawn myproject --cc=2 --cod=1
-
-# 4. Set context
-cm context "Implementing user authentication" --json
-
-# 5. Send initial prompt
-ntm send myproject "Let's implement user authentication.
-Here's the context: [paste cm output]"
-
-# 6. Monitor and guide
-ntm attach myproject
-
-# 7. Scan before committing
-ubs .
-
-# 8. Update memory
-cm reflect
-
-# 9. Close the task
-bd close <task-id>
+# 3. Use agents to implement
+ntm attach myproject                  # Use agents to implement the claimed task
 ```
 
 ### Team Coordination Enhancement
@@ -175,11 +134,12 @@ cc "Please analyze the current work priorities considering team context and reco
 bd update <task-id> --status=in_progress
 bd sync -m "Claim task from agent recommendation"
 
-# 3-9. Automated flywheel loop executes
-# Background automation handles the full cycle automatically
+# 3. Use agents to implement
+ntm attach myproject                  # Use agents to implement the task
 
-# 10. Task completion synced automatically
-# bd sync happens automatically when automation completes tasks
+# 4. Close and sync when complete
+bd close <task-id>
+bd sync -m "Complete task"
 ```
 
 ## Solo Developer Workflow
@@ -207,17 +167,10 @@ cc "Please analyze the user authentication tasks and recommend which one to star
 # Claim the recommended task
 bd update agent-flywheel-xyz.1 --status=in_progress
 
-# Automated execution takes over (or manual if you prefer control):
-# - Background process automatically handles the full flywheel loop
-# - Spawns agents, sets context, monitors, scans, reflects, and closes task
+# Use agents to implement
+ntm attach auth-project               # Use agents to implement the login form component
 
-# Manual execution (alternative for direct control):
-ntm spawn auth-project --cc=2 --cod=1
-cm context "user authentication React login forms" --json
-ntm send auth-project "Let's implement the login form component. Context: [paste cm output]"
-ntm attach auth-project
-ubs .
-cm reflect
+# Close when complete
 bd close agent-flywheel-xyz.1
 ```
 
@@ -240,10 +193,7 @@ git push origin main
 # 3. Close the beads task
 bd close agent-flywheel-xyz.1
 
-# 4. Update memory with what you learned
-cm reflect
-
-# 5. Sync beads changes (task completion) with team
+# 4. Sync beads changes (task completion) with team
 bd sync -m "Complete login form component task"
 ```
 
@@ -284,9 +234,10 @@ cc "Please analyze the available unclaimed work, consider what teammates are wor
 bd update agent-flywheel-abc.5 --status=in_progress
 bd sync -m "Claim database migration task based on agent analysis"
 
-# Automated progress tracking or manual updates
-# Automation handles progress and completion automatically
-# Or manual progress sharing:
+# Use agents to implement
+ntm attach database-migration         # Use agents to implement the task
+
+# Share progress as needed
 bd update agent-flywheel-abc.5 --notes "Database schema designed, starting implementation"
 bd sync -m "Update progress on database migration"
 ```
@@ -314,53 +265,51 @@ bd create "Add rate limiting middleware" -t task -p 2 --parent="$epic_id"
 bd sync -m "Add API rate limiting epic with tasks"
 ```
 
-## Agent-Assisted Planning + Automated Execution
+## Agent-Assisted Planning Workflow
 
-The agent-flywheel workflow combines human oversight with agent intelligence and automated execution:
+The agent-flywheel workflow combines human oversight with agent intelligence:
 
-### The Two-Phase Model
+### The Workflow
 1. **Planning Phase** (Agent-assisted, human-decided)
    - Agent analyzes priorities using `bv --robot-triage` and `bd ready`
    - Agent provides human-readable recommendations with reasoning
    - Human makes final decision and claims task
    - Creates explicit audit trail for team coordination
 
-2. **Execution Phase** (Fully automated)
-   - Background process monitors for in-progress tasks
-   - Automatically starts flywheel loop (spawn agents, set context, monitor, scan, reflect)
-   - Handles the full development cycle without manual intervention
-   - Syncs completion automatically
+2. **Implementation Phase** (Manual with agent assistance)
+   - Human uses `ntm attach` to work with agents on the claimed task
+   - Agents provide implementation assistance within the ntm session
+   - Human guides and monitors the development process
+   - Manual task closure and sync when complete
 
 ### The Interface Division
 - **Agents** - Analyze JSON data from `bv --robot-triage`, provide recommendations
 - **`bd` commands** - Task state management (create, claim, close, sync)
-- **Background automation** - Picks up in-progress tasks and executes flywheel loop
+- **`ntm attach`** - Work with agents on task implementation
 - **`bv` visual** - Human oversight and confirmation (read-only kanban view)
 
 ### Why This Design Works
 1. **Human strategic control** - Humans decide what to work on based on agent analysis
 2. **Agent intelligence** - Sophisticated analysis of priorities, dependencies, risks
-3. **Automated execution** - Agents handle the repetitive flywheel loop automatically
+3. **Agent-assisted implementation** - Agents help with coding within ntm sessions
 4. **Team coordination** - Clear claiming process prevents work conflicts
-5. **Continuous improvement** - Memory and context build up automatically through cm reflect
+5. **Human oversight** - Humans maintain control over implementation and completion
 
-This eliminates manual JSON parsing while ensuring humans maintain strategic control over work prioritization.
+This eliminates manual JSON parsing while ensuring humans maintain control over both prioritization and execution.
 
-## Memory and Context Management
+## Working with Agents
 
-### Building Context for Tasks
+### Using NTM for Implementation
 
 ```shell
-# Start task with context from memory
+# Claim task after agent recommendation
 bd update agent-flywheel-xyz.3 --status=in_progress
-cm context "authentication JWT tokens React" --json
 
-# Start agents with rich context
-ntm spawn jwt-task --cc=2
-ntm send jwt-task "Implement JWT token validation middleware. Context: $(cm context 'JWT validation patterns' --json)"
+# Use agents for implementation
+ntm attach jwt-task                   # Work with agents on JWT validation middleware
 
-# Update memory as you learn
-cm reflect                            # Update procedural memory from sessions
+# Agents provide implementation guidance within the ntm session
+# Human guides the development process and makes decisions
 ```
 
 ## Quality Assurance
@@ -380,35 +329,24 @@ git commit -m "Feature implementation with beads tracking"
 
 ## Best Practices Summary
 
-### Daily Routine - Agent-Assisted + Automated
+### Daily Routine - Agent-Assisted
 1. **Start day**: `bd sync` (get team updates)
 2. **Plan work**: `cc "Analyze priorities and recommend next task"` (agent-assisted planning)
 3. **Claim task**: `bd update task-id --status=in_progress` (human decision)
-4. **Automated execution**: Background process handles flywheel loop automatically:
-   - Spawns agents (`ntm spawn`)
-   - Sets context (`cm context`)
-   - Sends prompts with context
-   - Monitors progress (`ntm attach`)
-   - Quality scans (`ubs .`)
-   - Updates memory (`cm reflect`)
-   - Closes task (`bd close`) and syncs (`bd sync`)
+4. **Implement**: `ntm attach project` (work with agents on implementation)
+5. **Complete**: `bd close task-id` and `bd sync` (manual completion)
 
 ### Team Coordination
-- **Sync frequently**: Automated for task completion, manual after claiming tasks
+- **Sync frequently**: After claiming tasks, during progress updates, and at task completion
 - **Use agent analysis**: Let agents parse complex priority data and provide recommendations
 - **Claim deliberately**: Human decision-making on task selection prevents conflicts
-- **Monitor automation**: Check automated flywheel loop progress, intervene when needed
+- **Work with agents**: Use `ntm attach` to collaborate with agents on implementation
 - **Update task notes**: Share context and blockers with the team
-
-### When to Use Manual vs Automated
-- **Use automated**: Standard feature development, bug fixes, routine work
-- **Use manual**: Complex tasks needing human guidance, experimental work, learning new domains
-- **Use hybrid**: Agent-assisted planning with selective manual execution steps
 
 ### Quality Assurance
 - **Run UBS before commits**: Catch issues early
-- **Update memory after learning**: Use `cm reflect` to build context
+- **Work iteratively with agents**: Use `ntm attach` for continuous improvement
 - **Document decisions in beads**: Task notes preserve team knowledge
 - **Sync beads data with code**: Keep tracking in sync with implementation
 
-The flywheel loop creates a compounding cycle where each iteration improves the next through accumulated memory, systematic quality checks, and AI-guided prioritization.
+This workflow creates an effective development cycle combining AI-guided prioritization with human strategic control and agent-assisted implementation.
