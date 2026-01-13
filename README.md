@@ -8,6 +8,7 @@ Notes on setting up and using https://agent-flywheel.com/
 - [GitLab-specific setup](gitlab-setup.md)
 - [Docker setup for agents](docker-setup.md)
 - [Hosting options](hosting-options.md)
+- [Workflow examples](workflow-example.md)
 
 ## Installation, Doctor, and Update
 
@@ -249,34 +250,49 @@ bv                                    # Open kanban view
 
 ## Typical Workflow
 
-First, clone the project under `/data/projects` with `gh repo clone` or `glab repo clone`.
+Basic workflow for daily development with agent-flywheel:
 
 ```shell
-# 1. Plan work
-bv                                    # Check tasks
-bd ready                              # See what's ready
+# 1. Sync with team (get latest beads issues)
+bd sync
 
-# 2. Start agents
+# 2. Plan work
+bv                                    # Visual kanban view
+bd ready                              # See tasks ready to work on
+
+# 3. Claim and start a task
+bd update <task-id> --status in_progress --assignee myname
+bd sync -m "Claim task X"             # Notify team immediately
+
+# 4. Start agents
 ntm spawn myproject --cc=2 --cod=1
 
-# 3. Set context from memory
-cm context "Implementing auth" --json
+# 5. Set context from memory
+cm context "implementing feature X" --json
 
-# 4. Send initial prompt
-ntm send myproject "Implement user auth. Context: [paste cm output]"
+# 6. Send initial prompt with context
+ntm send myproject "Implement feature X. Context: [paste cm output]"
 
-# 5. Monitor
+# 7. Monitor and iterate
 ntm attach myproject
 
-# 6. Scan before commit
-ubs .
+# 8. Quality check before commit
+ubs .                                 # Scan for bugs
 
-# 7. Update memory
-cm reflect
+# 9. Commit code changes
+git add .
+git commit -m "Implement feature X"
+git push origin main
 
-# 8. Close task
+# 10. Close task and sync with team
 bd close <task-id>
+bd sync -m "Complete feature X task"
+
+# 11. Update memory for future context
+cm reflect
 ```
+
+For detailed examples including team collaboration, epic management, and advanced workflows, see [Workflow Examples](workflow-example.md).
 
 
 ## Fork of project
