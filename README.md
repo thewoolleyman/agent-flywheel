@@ -181,13 +181,6 @@ bd ready                              # See tasks ready to work on
 bd close <task-id>                    # Close a task
 ```
 
-**Recommended setup for new projects:**
-```shell
-git branch beads-sync main            # Create dedicated sync branch
-git push -u origin beads-sync
-bd config set sync.branch beads-sync  # Avoid worktree conflicts
-```
-
 ### am (Agent Mail)
 
 Multi-agent coordination server that lets agents share context with each other:
@@ -204,7 +197,53 @@ Optional safety guardrails with two-person rule for dangerous commands:
 slb                                   # Review dangerous operations
 ```
 
-### Typical Workflow
+## Initial project setup
+
+### For new projects
+
+First, clone or create your project repository:
+
+```shell
+gh repo clone <owner/repo>            # Clone GitHub project
+# OR
+glab repo clone <owner/repo>          # Clone GitLab project
+# OR
+mkdir my-new-project && cd my-new-project && git init  # Create new project
+```
+
+Initialize beads issue tracking and configure git branches:
+
+```shell
+bd init                               # Initialize beads in current project
+git branch beads-sync main            # Create dedicated sync branch
+git push -u origin beads-sync
+bd config set sync.branch beads-sync  # Avoid worktree conflicts
+```
+
+### For existing projects
+
+If you're working on a project that already has agent-flywheel setup:
+
+```shell
+gh repo clone <owner/repo>            # Clone GitHub project
+# OR
+glab repo clone <owner/repo>          # Clone GitLab project
+cd <project-directory>
+git checkout beads-sync               # Switch to beads branch if it exists
+bd ready                              # Check for ready tasks
+```
+
+### Verify setup
+
+Test that your environment is properly configured:
+
+```shell
+acfs doctor                           # Quick health check
+bd ready                              # Check beads status
+bv                                    # Open kanban view
+```
+
+## Typical Workflow
 
 ```shell
 # 1. Plan work
