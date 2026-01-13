@@ -8,7 +8,7 @@ Notes on setting up and using https://agent-flywheel.com/
 - [GitLab-specific setup](gitlab-setup.md)
 - [Docker setup for agents](docker-setup.md)
 - [Hosting options](hosting-options.md)
-- [Workflow examples](workflow-example.md)
+- [Workflow examples](workflow-examples.md)
 
 ## Installation, Doctor, and Update
 
@@ -199,100 +199,6 @@ Optional safety guardrails with two-person rule for dangerous commands:
 slb                                   # Review dangerous operations
 ```
 
-## Initial project setup
-
-### For new projects
-
-First, clone or create your project repository:
-
-```shell
-gh repo clone <owner/repo>            # Clone GitHub project
-# OR
-glab repo clone <owner/repo>          # Clone GitLab project
-# OR
-mkdir my-new-project && cd my-new-project && git init  # Create new project
-```
-
-Initialize beads issue tracking and configure git branches:
-
-```shell
-bd init                               # Initialize beads in current project
-git add .                             # Stage the new beads files
-git commit -m "Initialize beads issue tracking"
-git push origin main                  # Push beads setup to main branch
-git branch beads-sync main            # Create dedicated sync branch
-git push -u origin beads-sync
-bd config set sync.branch beads-sync  # Avoid worktree conflicts
-```
-
-### For existing projects
-
-If you're working on a project that already has agent-flywheel setup:
-
-```shell
-gh repo clone <owner/repo>            # Clone GitHub project
-# OR
-glab repo clone <owner/repo>          # Clone GitLab project
-cd <project-directory>
-git checkout beads-sync               # Switch to beads branch if it exists
-bd ready                              # Check for ready tasks
-```
-
-### Verify setup
-
-Test that your environment is properly configured:
-
-```shell
-acfs doctor                           # Quick health check
-bd ready                              # Check beads status
-bv                                    # Open kanban view
-```
-
-## Typical Workflow
-
-Basic workflow for daily development with agent-flywheel:
-
-```shell
-# 1. Sync with team (get latest beads issues)
-bd sync
-
-# 2. Plan work
-bv                                    # Visual kanban view
-bd ready                              # See tasks ready to work on
-
-# 3. Claim and start a task
-bd update <task-id> --status in_progress --assignee myname
-bd sync -m "Claim task X"             # Notify team immediately
-
-# 4. Start agents
-ntm spawn myproject --cc=2 --cod=1
-
-# 5. Set context from memory
-cm context "implementing feature X" --json
-
-# 6. Send initial prompt with context
-ntm send myproject "Implement feature X. Context: [paste cm output]"
-
-# 7. Monitor and iterate
-ntm attach myproject
-
-# 8. Quality check before commit
-ubs .                                 # Scan for bugs
-
-# 9. Commit code changes
-git add .
-git commit -m "Implement feature X"
-git push origin main
-
-# 10. Close task and sync with team
-bd close <task-id>
-bd sync -m "Complete feature X task"
-
-# 11. Update memory for future context
-cm reflect
-```
-
-For detailed examples including team collaboration, epic management, and advanced workflows, see [Workflow Examples](workflow-example.md).
 
 
 ## Fork of project
