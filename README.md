@@ -2,6 +2,11 @@
 
 Notes on setting up and using https://agent-flywheel.com/
 
+## Other docs and notes
+
+- [Other notes](other-notes.md)
+- [GitLab-specific setup](gitlab-setup.md)
+
 ## Installation, Doctor, and Update
 
 ### Update vs. Re-install
