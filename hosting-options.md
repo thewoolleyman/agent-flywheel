@@ -35,9 +35,9 @@ brew install lima
 
 ### Quick Setup
 
-**Create Ubuntu VM:**
+**Create Ubuntu VM with recommended resources:**
 ```bash
-limactl create --name=ubuntu24 template:ubuntu-lts
+limactl create --name=ubuntu24 --memory=32 --cpus=8 template:ubuntu-lts
 ```
 
 **Start and access the VM:**
@@ -72,27 +72,41 @@ Lima mounts your entire home directory inside the VM for seamless access. Write 
 
 **Configure VM resources during creation:**
 ```bash
-limactl create --name=agent-flywheel --memory=64GiB --cpus=8 template:ubuntu-lts
+limactl create --name=ubuntu24 --memory=32 --cpus=8 template:ubuntu-lts
 ```
 
+The `--memory` flag takes a number in GiB (e.g., `32` for 32GB).
+
 **For agent-flywheel requirements:**
-- Memory: 64GB (modify template or use custom YAML)
+- Memory: 32GB minimum for local development, 64GB for full experience
 - CPUs: 8+ cores recommended
-- Storage: 200GB+ recommended
+- Storage: 100GB default (expandable)
 
 ### Running Agent Flywheel Setup
 
-Once your Lima VM is running:
+The installer requires root access for the Ubuntu auto-upgrade phase. After installation, tools are configured for the `ubuntu` user.
 
-1. Access the VM:
-   ```bash
-   limactl shell ubuntu24
-   ```
+**1. Access the VM as root:**
+```bash
+limactl shell ubuntu24 sudo -i
+```
 
-2. Run the agent-flywheel installer:
-   ```bash
-   curl --proto '=https' --proto-redir '=https' -fsSL 'https://raw.githubusercontent.com/Dicklesworthstone/agentic_coding_flywheel_setup/main/install.sh' | bash -s -- --mode vibe --yes
-   ```
+**2. Run the installer as root:**
+```bash
+curl -fsSL "https://raw.githubusercontent.com/Dicklesworthstone/agentic_coding_flywheel_setup/main/install.sh" | bash -s -- --mode vibe --yes
+```
+
+**3. After installation, exit root and use the ubuntu user:**
+```bash
+exit  # Exit root shell
+limactl shell ubuntu24  # Connect as regular user
+```
+
+**Alternative: Skip Ubuntu upgrade (run as regular user):**
+```bash
+limactl shell ubuntu24
+curl -fsSL "https://raw.githubusercontent.com/Dicklesworthstone/agentic_coding_flywheel_setup/main/install.sh" | bash -s -- --mode vibe --yes --skip-ubuntu-upgrade
+```
 
 ## UTM Virtual Machine
 
@@ -166,10 +180,12 @@ ssh username@vm-ip-address
 Once your UTM VM is running Ubuntu:
 
 1. SSH into the VM or use the UTM console
-2. Run the agent-flywheel installer:
+2. Switch to root and run the installer:
    ```bash
-   curl --proto '=https' --proto-redir '=https' -fsSL 'https://raw.githubusercontent.com/Dicklesworthstone/agentic_coding_flywheel_setup/main/install.sh' | bash -s -- --mode vibe --yes
+   sudo -i
+   curl -fsSL "https://raw.githubusercontent.com/Dicklesworthstone/agentic_coding_flywheel_setup/main/install.sh" | bash -s -- --mode vibe --yes
    ```
+3. After installation, exit root and reconnect as the `ubuntu` user
 
 ### Performance Tips
 
