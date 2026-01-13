@@ -41,6 +41,11 @@ NOTE: In ACFS, the prefix key is `Ctrl+a` (not the default `Ctrl+b`). All tmux c
 - Detach: `Ctrl+a` then `d` (keeps session running)
 - Kill session: `tmux kill-session -t myproject` (`ntm kill myproject`)
 
+### Display refresh
+- Refresh/redraw display: `Ctrl+a` then `r`
+- Alternative: `Ctrl+a` then `:` then type `refresh-client`
+- Useful when terminal gets corrupted (e.g., after cmd-k on macOS)
+
 ### Window commands
 - New window: `Ctrl+a` then `c`
 - Next window: `Ctrl+a` then `n`
