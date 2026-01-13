@@ -204,7 +204,8 @@ Or download from: [Ubuntu 24.04 ARM64](https://ubuntu.com/download/server/arm)
      - Server name: `agent-flywheel-host-utm`
      - Username: **`ubuntu`** (important - matches ACFS expectations)
      - Password: your choice
-   - **SSH**: Enable OpenSSH server
+   - **Ubuntu Pro**: Skip for now (paid subscription not needed)
+   - **SSH**: Enable "Install OpenSSH server"
    - **Snaps**: Skip (select Done without selecting any)
 4. Wait for installation to complete
 5. Select **"Reboot Now"** when prompted
