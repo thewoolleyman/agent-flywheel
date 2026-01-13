@@ -54,7 +54,24 @@ NOTE: In ACFS, the prefix key is `Ctrl+a` (not the default `Ctrl+b`). All tmux c
 - Split vertically: `Ctrl+a` then `|`
 - Split horizontally: `Ctrl+a` then `-`
 - Navigate panes: `Ctrl+a` then `h/j/k/l`
+- Move to next pane: `Ctrl+a` then `o`
+- Move to last active pane: `Ctrl+a` then `;`
+- Show pane numbers (then press number to jump): `Ctrl+a` then `q`
+- Move in direction: `Ctrl+a` then `Arrow`
 - Close pane: `Ctrl+a` then `x`
+
+### Swapping panes
+- Swap with previous pane: `Ctrl+a` then `{`
+- Swap with next pane: `Ctrl+a` then `}`
+
+### Rotating panes
+- Rotate panes forward: `Ctrl+a` then `Ctrl+o`
+- Rotate panes backward: `Ctrl+a` then `Alt+o`
+
+### Pane layouts
+- Cycle through preset layouts: `Ctrl+a` then `Space`
+  - Presets: even-horizontal, even-vertical, main-horizontal, main-vertical, tiled
+- Select specific layout: `Ctrl+a` then `Alt+1` through `Alt+5`
 
 ### Moving panes and windows
 - Break pane to new window: `Ctrl+a` then `!`
@@ -64,7 +81,9 @@ NOTE: In ACFS, the prefix key is `Ctrl+a` (not the default `Ctrl+b`). All tmux c
 - Or run directly from shell: `tmux join-pane -s :<window-number>`
 
 ### Resizing panes
-Keyboard shortcut (if configured): `Ctrl+a` then `Alt+↑/↓/←/→`
+Keyboard shortcuts:
+- Small increments: `Ctrl+a` then `Ctrl+Arrow`
+- Large increments: `Ctrl+a` then `Alt+Arrow`
 
 In command mode (`Ctrl+a` then `:`):
 - `resize-pane -D 10` — resize down
