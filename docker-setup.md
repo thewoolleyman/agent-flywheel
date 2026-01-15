@@ -17,7 +17,7 @@ Standardized agent-flywheel workflow using Docker containers for project-specifi
 
 1. **Create Project Dockerfile**
 ```dockerfile
-FROM ubuntu:24.04
+FROM ruby:latest
 
 # Install base dependencies and agents
 RUN apt-get update && apt-get install -y \
@@ -67,7 +67,7 @@ ntm spawn myproject --cc=2 --cod=1 --gmi=1
 
 ### Base Template (Minimal)
 ```dockerfile
-FROM ubuntu:24.04
+FROM ruby:latest
 
 # System dependencies
 RUN apt-get update && apt-get install -y \
@@ -439,6 +439,61 @@ EOF
 ```shell
 docker-compose up -d
 ntm spawn ml-project --cc=2 --cod=1
+```
+
+## Validation and Testing
+
+After setting up your Docker environment, verify everything works correctly:
+
+### Container Verification
+```shell
+# Check container is running
+docker ps | grep myproject-env
+
+# Verify workspace mount
+docker exec myproject-env ls -la /workspace
+
+# Verify credential mounts
+docker exec myproject-env ls -la /root/.claude
+docker exec myproject-env ls -la /root/.codex
+docker exec myproject-env ls -la /root/.config/gemini
+```
+
+### Agent Installation Verification
+```shell
+# Check agents are installed
+docker exec myproject-env which claude
+docker exec myproject-env which codex
+docker exec myproject-env which gemini
+
+# Check agent versions
+docker exec myproject-env claude --version
+docker exec myproject-env codex --version
+docker exec myproject-env gemini --version
+```
+
+### Agent Authentication Test
+```shell
+# Test Claude authentication
+docker exec -i myproject-env claude --dangerously-skip-permissions "respond with OK"
+
+# Test Codex authentication
+docker exec -i myproject-env codex --dangerously-bypass-approvals-and-sandbox "respond with OK"
+
+# Test Gemini authentication
+docker exec -i myproject-env gemini --yolo "respond with OK"
+```
+
+### NTM Integration Test
+```shell
+# Spawn a test session with one agent
+ntm spawn myproject --cc=1
+
+# Verify session created
+ntm list
+
+# Clean up test session
+ntm kill myproject
 ```
 
 ## Troubleshooting

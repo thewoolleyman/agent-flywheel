@@ -28,3 +28,7 @@ Temporary Items
 
 # bv (beads viewer) local config and caches
 .bv/
+
+# ntm (named tmux manager) runtime files
+.ntm/logs/
+.ntm/pids/
