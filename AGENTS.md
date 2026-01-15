@@ -100,4 +100,20 @@ git push                # Push to remote
 - Use descriptive titles and set appropriate priority/type
 - Always `bd sync` before ending session
 
+### CRITICAL: Never Edit .beads/issues.jsonl Directly
+
+**Use `bd` commands** to manage issues, not direct file edits:
+
+```bash
+# CORRECT - use bd commands
+bd update <id> --status=closed
+bd close <id>
+bd sync
+
+# WRONG - editing files directly
+# Editing .beads/issues.jsonl with Edit/Write tools
+```
+
+If you ever edit `.beads/issues.jsonl` directly (avoid this), you MUST run `bd sync` immediately after to sync the database and push to the beads-sync branch. Committing the file to main without syncing leaves beads in an inconsistent state.
+
 <!-- end-bv-agent-instructions -->
