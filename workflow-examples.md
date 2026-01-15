@@ -41,6 +41,20 @@ git checkout beads-sync               # Switch to beads branch if it exists
 bd ready                              # Check for ready tasks
 ```
 
+### Configure AGENTS.md for beads_viewer
+
+**CRITICAL**: To prevent beads_viewer warnings, ensure your AGENTS.md file contains the required detection markers:
+
+```markdown
+<!-- bv-agent-instructions-v1 -->
+
+[Your beads workflow documentation here]
+
+<!-- end-bv-agent-instructions -->
+```
+
+These HTML comment markers allow beads_viewer to detect that agent instructions are properly configured. Without them, running `bv` will show warnings about missing beads_viewer setup.
+
 ### Verify setup
 
 Test that your environment is properly configured:
