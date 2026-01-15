@@ -174,13 +174,52 @@ cm reflect                            # Update procedural memory from sessions
 
 ### bv/bd (Beads Viewer)
 
-Track tasks and issues with a kanban-style interface:
+Track tasks and issues with CLI and visual kanban interface:
 
+#### Installation
 ```shell
-bv                                    # Opens TUI (kanban view)
+# Install beads (CLI)
+curl -sSL https://raw.githubusercontent.com/steveyegge/beads/main/scripts/install.sh | bash
+
+# Install beads_viewer (Visual Interface)
+pip install beads-viewer
+# OR
+pipx install beads-viewer
+```
+
+#### CLI Usage
+```shell
 bd init                               # Initialize beads in current project
 bd ready                              # See tasks ready to work on
+bd create "Task title"                # Create new task
+bd update <task-id> --status in_progress  # Update task status
 bd close <task-id>                    # Close a task
+bd sync                               # Sync with git
+```
+
+#### Visual Interface
+```shell
+bv                                    # Opens web UI at http://localhost:8080
+# OR
+beads-viewer                          # Alternative command
+
+# Features:
+# - Kanban Board: Visual task management with drag-and-drop
+# - Dependency Graph: Visual representation of task dependencies
+# - Live Reload: Auto-refreshes when beads data changes
+# - Insights Dashboard: Project metrics and progress visualization
+# - Multi-view: Switch between board, list, and graph views
+```
+
+#### Workflow Integration
+```shell
+# Start visual interface in background
+bv &
+
+# Work with CLI as normal - UI updates automatically
+bd create "New feature"
+bd ready
+ntm spawn feature-dev --cc=2 --cod=1   # Multi-agent work with visual tracking
 ```
 
 ### am (Agent Mail)

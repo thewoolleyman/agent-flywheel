@@ -88,14 +88,43 @@ bd ready --unassigned                # Available for claiming
 bd ready --pretty                    # Tree format with status/priority symbols
 ```
 
-### `bv` - Visual Interface (Read-Only)
-The standard `bv` command provides visual task management:
+### `bv` - Visual Interface
+
+There are two visual interfaces available:
+
+#### Terminal Interface (Built-in)
+The standard `bv` command from beads CLI provides terminal-based task management:
 - **Kanban board** - Press 'b' for column view (Open, In Progress, Blocked, Closed)
 - **Navigation** - j/k keys, gg/G for jumps, vim-style movement
 - **Filtering** - Press 'o' for Open, 'r' for Ready, 'c' for Closed tasks
 - **Details** - Select tasks to see full information and history
+- **Read-only** - Changes made via `bd update`, not through the UI
 
-**Note**: The visual interface is read-only. Status changes require CLI commands.
+#### Web Interface (beads_viewer)
+For a modern browser-based interface, install **beads_viewer**:
+
+```bash
+# Installation (one-time setup)
+pip install beads-viewer
+# OR
+pipx install beads-viewer
+```
+
+```bash
+# Usage
+bv                    # Same command, opens web UI at localhost:8080
+# OR
+beads-viewer          # Alternative command
+
+# Features:
+# - Drag-and-drop Kanban board
+# - Visual dependency graphs
+# - Live reload (auto-updates from CLI changes)
+# - Insights dashboard with project metrics
+# - Better for team collaboration and visual planning
+```
+
+**Recommendation**: Use beads_viewer (web interface) for visual planning and team collaboration. The terminal interface is faster for quick checks during CLI workflows.
 
 ### Agent-Assisted Planning Workflow
 1. **Ask agent to analyze**: `cc "Please run bv --robot-triage and bd ready, then recommend which task I should work on"`

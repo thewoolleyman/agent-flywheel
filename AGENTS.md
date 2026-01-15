@@ -12,6 +12,54 @@ bd close <id>         # Complete work
 bd sync               # Sync with git
 ```
 
+## Beads Viewer (Visual Interface)
+
+For a visual Kanban-style interface, use the **beads_viewer** tool:
+
+### Installation
+
+```bash
+# Install beads_viewer
+pip install beads-viewer
+# OR
+pipx install beads-viewer
+```
+
+### Usage
+
+```bash
+# In your project directory with .beads/
+bv                    # Start visual interface
+# OR
+beads-viewer          # Alternative command
+
+# Access at http://localhost:8080 (default)
+# Live reload: automatically updates when .beads/issues.jsonl changes
+```
+
+### Features
+
+- **Kanban Board**: Visual task management with drag-and-drop
+- **Dependency Graph**: Visual representation of task dependencies
+- **Live Reload**: Auto-refreshes when beads data changes
+- **Insights Dashboard**: Project metrics and progress visualization
+- **Multi-view**: Switch between board, list, and graph views
+
+### Workflow Integration
+
+```bash
+# Start viewer in background
+bv &
+
+# Work with CLI as normal
+bd create "New task"
+bd ready
+bd update <id> --status in_progress
+
+# View updates automatically in browser
+# No need to refresh - live reload handles updates
+```
+
 ## Landing the Plane (Session Completion)
 
 **When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
