@@ -29,6 +29,102 @@ Temporary Items
 # bv (beads viewer) local config and caches
 .bv/
 
-# ntm (named tmux manager) runtime files
+# Agent Flywheel Runtime Files
 .ntm/logs/
 .ntm/pids/
+.ntm/sessions/
+.ntm/tmp/
+.ntm/*.log
+.ntm/*.pid
+
+# Agent Credential Files (should be mounted, not copied)
+.claude/
+.codex/
+.config/gemini/
+*.key
+*.pem
+*_credentials
+*_secrets
+
+# Docker Files
+docker-compose.override.yml
+.dockerignore
+*.dockerfile.local
+docker-data/
+volumes/
+
+# Container Runtime
+.container_id
+.docker_pid
+*.container.log
+
+# NTM Session Data
+ntm_session_*
+*.ntm.bak
+agent_session_*
+
+# AI Agent Cache/Temp Files
+.claude_cache/
+.codex_cache/
+.gemini_cache/
+agent_temp/
+*.agent.tmp
+
+# Development Environment
+.env
+.env.local
+.env.*.local
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime and Temporary Files
+tmp/
+temp/
+.tmp/
+.cache/
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+*.pid
+
+# Project Data Directories
+postgres_data/
+redis_data/
+elasticsearch_data/
+gitaly_data/
+gitlab-data/
+gdk-data/
+
+# Build Artifacts
+dist/
+build/
+*.tar.gz
+*.zip
+
+# Testing and Coverage
+coverage/
+.nyc_output/
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Package Manager
+package-lock.json
+yarn.lock
+Pipfile.lock
+
+# Local Configuration Overrides
+config.local.toml
+config.override.toml
+local_settings.py
