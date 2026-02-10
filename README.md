@@ -240,6 +240,33 @@ slb                                   # Review dangerous operations
 
 
 
+## Chrome Browser Setup (for Claude Code `--chrome` flag)
+
+Chrome is installed via apt from Google's official repository, enabling Claude Code's browser automation features via the `--chrome` flag.
+
+### Installation
+
+```shell
+# Add Google's signing key and apt repository
+wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg
+echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] https://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
+
+# Install Chrome
+sudo apt-get update && sudo apt-get install -y google-chrome-stable
+```
+
+### Usage with Claude Code
+
+Start Claude Code with the `--chrome` flag to enable browser automation MCP tools:
+
+```shell
+cc --chrome   # or: claude --chrome
+```
+
+This starts a Claude in Chrome MCP server. To complete the connection, install the **Claude in Chrome** extension in a Chrome browser and connect it to this VM. The extension bridges Claude Code's MCP tools to the browser for reading pages, clicking elements, filling forms, taking screenshots, etc.
+
+On a headless VM, connect from Chrome on your local machine via the extension pointing to the VM's address.
+
 ## Fork of project
 
 - https://github.com/thewoolleyman/agentic_coding_flywheel_setup
