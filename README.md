@@ -240,9 +240,9 @@ slb                                   # Review dangerous operations
 
 
 
-## Chrome Browser Setup (for Claude Code `--chrome` flag)
+## Chrome Browser Setup
 
-Chrome is installed via apt from Google's official repository, enabling Claude Code's browser automation features via the `--chrome` flag.
+Chrome and Xvfb are installed on the VM for browser automation.
 
 ### Installation
 
@@ -253,19 +253,35 @@ echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] https://d
 
 # Install Chrome
 sudo apt-get update && sudo apt-get install -y google-chrome-stable
+
+# Install Xvfb (virtual framebuffer for headless VMs)
+sudo apt-get install -y xvfb
 ```
 
-### Usage with Claude Code
+### Using Chrome on a Headless VM with Xvfb
 
-Start Claude Code with the `--chrome` flag to enable browser automation MCP tools:
+Since headless VMs have no display, use Xvfb to provide a virtual framebuffer:
+
+```shell
+# Start Xvfb on display :99
+Xvfb :99 -screen 0 1920x1080x24 &
+export DISPLAY=:99
+
+# Now Chrome can run
+google-chrome-stable --no-sandbox --disable-gpu https://example.com
+```
+
+This is useful for projects that use Playwright, Puppeteer, Selenium, or other browser automation frameworks with the installed Chrome.
+
+### Claude Code `--chrome` Flag (Not Yet Working on Headless VMs)
+
+The `--chrome` flag starts a Claude in Chrome MCP server for browser automation:
 
 ```shell
 cc --chrome   # or: claude --chrome
 ```
 
-This starts a Claude in Chrome MCP server. To complete the connection, install the **Claude in Chrome** extension in a Chrome browser and connect it to this VM. The extension bridges Claude Code's MCP tools to the browser for reading pages, clicking elements, filling forms, taking screenshots, etc.
-
-On a headless VM, connect from Chrome on your local machine via the extension pointing to the VM's address.
+**Limitation:** On headless VMs, the `--chrome` flag does not currently work because the Chrome extension's bridge feature flag is not yet enabled. See [claude-code#15450](https://github.com/anthropics/claude-code/issues/15450) for tracking. Once resolved, this will allow Claude Code to directly control Chrome for reading pages, clicking elements, filling forms, taking screenshots, etc.
 
 ## Fork of project
 
